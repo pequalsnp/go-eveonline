@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/pequalsnp/go-eveonline/pkg/eveonline"
-	"gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v2"
 )
 
 type ProductBlueprintMap map[eveonline.TypeID][]*Blueprint
@@ -49,7 +49,7 @@ type Blueprint struct {
 	Activities      *Activities      `yaml:"activities"`
 }
 
-func (b Blueprint) CreatesProducts() ([]eveonline.TypeID, error) {
+func (b *Blueprint) CreatesProducts() ([]eveonline.TypeID, error) {
 	products := make([]eveonline.TypeID, 0)
 	if b.Activities.Manufacturing != nil {
 		for _, product := range b.Activities.Manufacturing.Products {
@@ -64,6 +64,10 @@ func (b Blueprint) CreatesProducts() ([]eveonline.TypeID, error) {
 	}
 
 	return products, nil
+}
+
+func (b *Blueprint) IsReaction() bool {
+	return b.Activities.Reaction != nil
 }
 
 func ImportBlueprints(blueprintsFileContents []byte) (ProductBlueprintMap, error) {

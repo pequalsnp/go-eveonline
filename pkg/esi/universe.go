@@ -165,10 +165,10 @@ func (u *Universe) GetStation(stationID eveonline.StationID, httpClient *http.Cl
 	}
 
 	u.lock.Lock()
+	defer u.lock.Unlock()
 	potentiallyRefreshedStationObj, ok := u.stations[stationID]
 	if ok && !potentiallyRefreshedStationObj.Expired() {
 		// Refreshed while upgrading the lock, so return the new version
-		u.lock.Unlock()
 		return potentiallyRefreshedStationObj, nil
 	}
 
@@ -199,7 +199,7 @@ func (u *Universe) GetSystem(systemID eveonline.SystemID, httpClient *http.Clien
 	}
 
 	systemObj = new(System)
-	err = json.Unmarshal(resp.Body, &systemObj)
+	err = json.Unmarshal(resp.Body, systemObj)
 	if err != nil {
 		u.lock.RUnlock()
 		return nil, err

@@ -17,6 +17,8 @@ type StationID int
 type SystemID int
 type ConstellationID int
 type LocationID int64
+type CharacterID int64
+type SkillID int64
 
 type CacheInfo struct {
 	ExpiresAt time.Time

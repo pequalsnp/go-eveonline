@@ -74,6 +74,41 @@ func GetFromESI(url string, httpClient *http.Client, queryParams map[string][]st
 	}, nil
 }
 
+func ScanPages(url string, httpClient *http.Client, scanFn func(*ResponsePage) (bool, error)) error {
+	page := 1
+	for {
+		responsePage, err := GetFromESI(url, httpClient, map[string][]string{"page": []string{strconv.Itoa(page)}})
+		if err != nil {
+			return err
+		}
+
+		continueScan, err := scanFn(responsePage)
+		if err != nil {
+			return err
+		}
+		if !continueScan {
+			break
+		}
+
+		pagesStr := responsePage.Headers.Get("x-pages")
+		pages := 0
+		if pagesStr != "" {
+			pagesConverted, err := strconv.Atoi(pagesStr)
+			if err != nil {
+				return err
+			}
+			pages = pagesConverted
+		}
+
+		page = page + 1
+		if page >= pages {
+			break
+		}
+	}
+
+	return nil
+}
+
 func GetAllPages(url string, page int, httpClient *http.Client) ([]*ResponsePage, error) {
 	responsePage, err := GetFromESI(url, httpClient, map[string][]string{"page": []string{strconv.Itoa(page)}})
 	if err != nil {

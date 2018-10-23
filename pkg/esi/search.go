@@ -17,17 +17,22 @@ func (c InventoryTypeSearchCategory) ApiName() string {
 	return "inventory_type"
 }
 
-const SearchURL = "https://esi.evetech.net/v2/search/"
+const SearchURL = "https://esi.evetech.net/latest/search/"
 
 type SearchResults map[string][]interface{}
 
-func Search(query string, categories []SearchCategory, httpClient *http.Client) (SearchResults, error) {
+func Search(query string, categories []SearchCategory, strict bool, httpClient *http.Client) (SearchResults, error) {
 	categoryNames := make([]string, 0, len(categories))
 	for _, category := range categories {
 		categoryNames = append(categoryNames, category.ApiName())
 	}
 
-	resp, err := eveonline.GetFromESI(SearchURL, httpClient, map[string][]string{"categories": categoryNames})
+	params := map[string][]string{"search": []string{query}, "categories": categoryNames}
+	if strict {
+		params["strict"] = []string{"true"}
+	}
+
+	resp, err := eveonline.GetFromESI(SearchURL, httpClient, params)
 	if err != nil {
 		return nil, err
 	}
@@ -49,6 +54,9 @@ func Search(query string, categories []SearchCategory, httpClient *http.Client) 
 		switch category.(type) {
 		case InventoryTypeSearchCategory:
 			for _, typeID := range resultsForCategory {
+				if err != nil {
+					return nil, err
+				}
 				typeObj, err := universe.GetType(eveonline.TypeID(typeID), httpClient)
 				if err != nil {
 					return nil, err

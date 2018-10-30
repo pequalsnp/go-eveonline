@@ -24,6 +24,26 @@ The pattern this library uses is compatible with `golang.org/x/oauth2`.  This li
 
 Whenever a method takes an `authdClient *http.Client` it assunmes you will pass in such a client built with a token with the required scopes.
 
+# Blueprints
+
+This package can load the `blueprints.yml` file that ships with the Static Data Export.  Here is a simple example:
+```
+blueprintsYAMLFile, err := os.Open("./data/blueprints.yaml")
+if err != nil {
+  wd, _ := os.Getwd()
+  log.Fatalf("CWD is `%v` Failed to open blueprint YAML file: %v", wd, err)
+}
+contents, err := ioutil.ReadAll(blueprintsYAMLFile)
+if err != nil {
+  log.Fatalf("Failed to read blueprint YAML test data: %v", err)
+}
+log.Printf("loaded %d bytes from blueprint yaml", len(contents))
+blueprints, err := sde.ImportBlueprints(contents)
+if err != nil {
+  log.Fatalf("Failed to import blueprints: %v", err)
+}
+```
+
 # Examples
 
 TBD - I know they would be helpful and I will try and add some to this repo.

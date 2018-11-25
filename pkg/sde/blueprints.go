@@ -49,6 +49,14 @@ type Blueprint struct {
 	Activities      *Activities      `yaml:"activities"`
 }
 
+func (b Blueprint) ProductsAndInputs() ([]TypeQuantity, []TypeQuantity) {
+	if b.IsReaction() {
+		return b.Activities.Reaction.Products, b.Activities.Reaction.Materials
+	} else {
+		return b.Activities.Manufacturing.Products, b.Activities.Manufacturing.Materials
+	}
+}
+
 func (b *Blueprint) CreatesProducts() ([]eveonline.TypeID, error) {
 	products := make([]eveonline.TypeID, 0)
 	if b.Activities.Manufacturing != nil {
@@ -68,6 +76,10 @@ func (b *Blueprint) CreatesProducts() ([]eveonline.TypeID, error) {
 
 func (b *Blueprint) IsReaction() bool {
 	return b.Activities.Reaction != nil
+}
+
+func (b Blueprint) CanBeBuilt() bool {
+	return b.Activities.Manufacturing != nil || b.Activities.Manufacturing != nil
 }
 
 func ImportBlueprints(blueprintsFileContents []byte) (ProductBlueprintMap, error) {

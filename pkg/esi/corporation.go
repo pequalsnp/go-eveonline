@@ -17,10 +17,10 @@ type Corporation struct {
 
 const CorporationInfoURLPattern = "/v4/corporations/%d/"
 
-func GetCorporation(corporationID eveonline.CorporationID, httpClient *http.Client) (*Corporation, error) {
+func (e *ESI) GetCorporation(corporationID eveonline.CorporationID, httpClient *http.Client) (*Corporation, error) {
 	url := fmt.Sprintf(CorporationInfoURLPattern, corporationID)
 
-	resp, err := eveonline.GetFromESI(url, httpClient, nil)
+	resp, err := e.GetFromESI(url, httpClient, nil)
 	if err != nil {
 		return nil, err
 	}

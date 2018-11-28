@@ -39,7 +39,7 @@ type esiMarketPrice struct {
 
 type AveragePrices map[eveonline.TypeID]float64
 
-func GetMarket(regionID eveonline.RegionID, locationID *eveonline.LocationID, httpClient *http.Client) (*Market, error) {
+func (e *ESI) GetMarket(regionID eveonline.RegionID, locationID *eveonline.LocationID, httpClient *http.Client) (*Market, error) {
 	regionMarketOrdersURL := fmt.Sprintf("https://esi.evetech.net/v1/markets/%d/orders/", regionID)
 	var latestExpiry time.Time
 	market := &Market{
@@ -47,7 +47,7 @@ func GetMarket(regionID eveonline.RegionID, locationID *eveonline.LocationID, ht
 		HighestBuys: make(map[eveonline.TypeID]float64),
 		LowestSells: make(map[eveonline.TypeID]float64),
 	}
-	err := eveonline.ScanPages(regionMarketOrdersURL, httpClient, func(page *eveonline.ResponsePage) (bool, error) {
+	err := e.ScanPages(regionMarketOrdersURL, httpClient, func(page *ResponsePage) (bool, error) {
 		if page.ExpiresAt.After(latestExpiry) {
 			latestExpiry = page.ExpiresAt
 		}
@@ -86,10 +86,10 @@ func GetMarket(regionID eveonline.RegionID, locationID *eveonline.LocationID, ht
 	return market, nil
 }
 
-func GetOrders(regionID eveonline.RegionID, locationID *eveonline.LocationID, httpClient *http.Client) (*Orders, error) {
+func (e *ESI) GetOrders(regionID eveonline.RegionID, locationID *eveonline.LocationID, httpClient *http.Client) (*Orders, error) {
 	regionMarketOrdersURL := fmt.Sprintf("https://esi.evetech.net/v1/markets/%d/orders/", regionID)
 
-	allPages, err := eveonline.GetAllPages(regionMarketOrdersURL, 1, httpClient)
+	allPages, err := e.GetAllPages(regionMarketOrdersURL, 1, httpClient)
 	if err != nil {
 		return nil, err
 	}
@@ -120,9 +120,9 @@ func GetOrders(regionID eveonline.RegionID, locationID *eveonline.LocationID, ht
 	return &Orders{RegionID: regionID, Orders: orders, ExpiresAt: latestExpiry}, nil
 }
 
-func GetAverageMarketPrices(httpClient *http.Client) (AveragePrices, error) {
+func (e *ESI) GetAverageMarketPrices(httpClient *http.Client) (AveragePrices, error) {
 	marketPricesURL := "https://esi.evetech.net/v1/markets/prices/"
-	resp, err := eveonline.GetFromESI(marketPricesURL, httpClient, map[string][]string{})
+	resp, err := e.GetFromESI(marketPricesURL, httpClient, map[string][]string{})
 	if err != nil {
 		return nil, err
 	}

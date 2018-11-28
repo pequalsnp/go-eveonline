@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/pequalsnp/go-eveonline/pkg/eveonline"
@@ -55,11 +54,10 @@ const CharacterDetailsURLPattern = "https://esi.evetech.net/v4/characters/%d/"
 const CharacterPortraitsURLPattern = "https://esi.evetech.net/v2/characters/%d/portrait"
 const CharacterSkillsURLPattern = "https://esi.evetech.net/v4/characters/%d/skills"
 const CharacterAssetsURLPattern = "https://esi.evetech.net/v3/characters/%d/assets/"
-const CharacterWalletBalanceURLPattern = "https://esi.evetech.net/v1/characters/%d/wallet/"
 
-func GetCharacterDetails(httpClient *http.Client, characterID eveonline.CharacterID) (*Character, error) {
+func (e *ESI) GetCharacterDetails(httpClient *http.Client, characterID eveonline.CharacterID) (*Character, error) {
 	url := fmt.Sprintf(CharacterDetailsURLPattern, characterID)
-	resp, err := eveonline.GetFromESI(url, httpClient, map[string][]string{})
+	resp, err := e.GetFromESI(url, httpClient, map[string][]string{})
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +70,7 @@ func GetCharacterDetails(httpClient *http.Client, characterID eveonline.Characte
 	character.ID = characterID
 
 	url = fmt.Sprintf(CharacterPortraitsURLPattern, characterID)
-	resp, err = eveonline.GetFromESI(url, httpClient, map[string][]string{})
+	resp, err = e.GetFromESI(url, httpClient, map[string][]string{})
 	if err != nil {
 		return nil, err
 	}
@@ -86,9 +84,9 @@ func GetCharacterDetails(httpClient *http.Client, characterID eveonline.Characte
 	return character, nil
 }
 
-func GetCharacterSkills(httpClient *http.Client, characterID eveonline.CharacterID) (*CharacterSkills, error) {
+func (e *ESI) GetCharacterSkills(httpClient *http.Client, characterID eveonline.CharacterID) (*CharacterSkills, error) {
 	url := fmt.Sprintf(CharacterSkillsURLPattern, characterID)
-	resp, err := eveonline.GetFromESI(url, httpClient, map[string][]string{})
+	resp, err := e.GetFromESI(url, httpClient, map[string][]string{})
 	if err != nil {
 		return nil, err
 	}
@@ -106,10 +104,10 @@ func GetCharacterSkills(httpClient *http.Client, characterID eveonline.Character
 	return &CharacterSkills{Skills: skills}, nil
 }
 
-func GetCharacterAssets(authdClient *http.Client, characterID eveonline.CharacterID) (*CharacterAssets, error) {
+func (e *ESI) GetCharacterAssets(authdClient *http.Client, characterID eveonline.CharacterID) (*CharacterAssets, error) {
 	characterAssetsURL := fmt.Sprintf(CharacterAssetsURLPattern, characterID)
 
-	allPages, err := eveonline.GetAllPages(characterAssetsURL, 1, authdClient)
+	allPages, err := e.GetAllPages(characterAssetsURL, 1, authdClient)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get assets for character id %d, %v", characterID, err)
 	}
@@ -128,20 +126,4 @@ func GetCharacterAssets(authdClient *http.Client, characterID eveonline.Characte
 	}
 
 	return &CharacterAssets{Assets: assets}, nil
-}
-
-func GetCharacterWalletBalance(authdClient *http.Client, characterID eveonline.CharacterID) (float64, error) {
-	characterWalletURL := fmt.Sprintf(CharacterWalletBalanceURLPattern, characterID)
-
-	resp, err := eveonline.GetFromESI(characterWalletURL, authdClient, map[string][]string{})
-	if err != nil {
-		return 0.0, err
-	}
-
-	balance, err := strconv.ParseFloat(string(resp.Body), 64)
-	if err != nil {
-		return 0.0, fmt.Errorf("Failed to parse wallet balance for character id %d", characterID)
-	}
-
-	return balance, nil
 }

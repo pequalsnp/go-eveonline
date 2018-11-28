@@ -2,7 +2,6 @@ package esi
 
 import (
 	"encoding/json"
-	"net/http"
 
 	"github.com/pequalsnp/go-eveonline/pkg/eveonline"
 )
@@ -11,9 +10,11 @@ type SearchCategory interface {
 	ApiName() string
 }
 
-type InventoryTypeSearchCategory struct{}
+type InventoryTypeSearchCategory struct {
+	FilterCategoryID *eveonline.CategoryID
+}
 
-func (c InventoryTypeSearchCategory) ApiName() string {
+func (_ InventoryTypeSearchCategory) ApiName() string {
 	return "inventory_type"
 }
 
@@ -21,7 +22,7 @@ const SearchURL = "https://esi.evetech.net/latest/search/"
 
 type SearchResults map[string][]interface{}
 
-func Search(query string, categories []SearchCategory, strict bool, httpClient *http.Client) (SearchResults, error) {
+func (e *ESI) Search(query string, categories []SearchCategory, strict bool) (SearchResults, error) {
 	categoryNames := make([]string, 0, len(categories))
 	for _, category := range categories {
 		categoryNames = append(categoryNames, category.ApiName())
@@ -32,7 +33,7 @@ func Search(query string, categories []SearchCategory, strict bool, httpClient *
 		params["strict"] = []string{"true"}
 	}
 
-	resp, err := eveonline.GetFromESI(SearchURL, httpClient, params)
+	resp, err := e.GetFromESI(SearchURL, nil, params)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +44,6 @@ func Search(query string, categories []SearchCategory, strict bool, httpClient *
 		return nil, err
 	}
 
-	universe := GetUniverse()
 	searchResults := make(SearchResults)
 	for _, category := range categories {
 		resultsForCategory, ok := results[category.ApiName()]
@@ -57,10 +57,27 @@ func Search(query string, categories []SearchCategory, strict bool, httpClient *
 				if err != nil {
 					return nil, err
 				}
-				typeObj, err := universe.GetType(eveonline.TypeID(typeID), httpClient)
+				typeObj, err := e.GetType(eveonline.TypeID(typeID))
 				if err != nil {
 					return nil, err
 				}
+
+				if !typeObj.Published {
+					continue
+				}
+
+				optionalFilterCategoryID := category.(InventoryTypeSearchCategory).FilterCategoryID
+				if optionalFilterCategoryID != nil {
+					groupObj, err := e.GetGroup(typeObj.GroupID)
+					if err != nil {
+						return nil, err
+					}
+
+					if groupObj.CategoryID != *optionalFilterCategoryID {
+						continue
+					}
+				}
+
 				categorySearchResults, ok := searchResults[category.ApiName()]
 				if !ok {
 					searchResults[category.ApiName()] = make([]interface{}, 0)

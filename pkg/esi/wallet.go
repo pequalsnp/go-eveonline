@@ -11,10 +11,10 @@ import (
 const CharacterWalletBalanceURLPattern = "https://esi.evetech.net/v1/characters/%d/wallet/"
 const CharacterWalletJournalURLPattern = "https://esi.evetech.net/v4/characters/%d/wallet/journal/"
 
-func GetCharacterWalletBalance(authdClient *http.Client, characterID eveonline.CharacterID) (float64, error) {
+func (e *ESI) GetCharacterWalletBalance(authdClient *http.Client, characterID eveonline.CharacterID) (float64, error) {
 	characterWalletURL := fmt.Sprintf(CharacterWalletBalanceURLPattern, characterID)
 
-	resp, err := eveonline.GetFromESI(characterWalletURL, authdClient, map[string][]string{})
+	resp, err := e.GetFromESI(characterWalletURL, authdClient, map[string][]string{})
 	if err != nil {
 		return 0.0, err
 	}
@@ -30,10 +30,10 @@ func GetCharacterWalletBalance(authdClient *http.Client, characterID eveonline.C
 type WalletTransaction struct {
 }
 
-func GetCharacterWalletJournal(authdClient *http.Client, characterID eveonline.CharacterID) ([]*WalletTransaction, error) {
+func (e *ESI) GetCharacterWalletJournal(authdClient *http.Client, characterID eveonline.CharacterID) ([]*WalletTransaction, error) {
 	characterWalletJournalURL := fmt.Sprintf(CharacterWalletJournalURLPattern, characterID)
 
-	err := eveonline.ScanPages(characterWalletJournalURL, authdClient, func(responsePage *eveonline.ResponsePage) (bool, error) {
+	err := e.ScanPages(characterWalletJournalURL, authdClient, func(responsePage *ResponsePage) (bool, error) {
 		return false, nil
 	})
 	if err != nil {

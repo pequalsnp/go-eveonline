@@ -17,10 +17,10 @@ type esiLoaytyPointEntry struct {
 
 const CharacterLoyaltyPointsURLPattern = "/v1/characters/%d/loyalty/points/"
 
-func GetLoyaltyPoints(characterID *eveonline.CharacterID, authdClient *http.Client) (CorporationLoyaltyPoints, error) {
+func (e *ESI) GetLoyaltyPoints(characterID *eveonline.CharacterID, authdClient *http.Client) (CorporationLoyaltyPoints, error) {
 	url := fmt.Sprintf(CharacterLoyaltyPointsURLPattern, characterID)
 
-	resp, err := eveonline.GetFromESI(url, authdClient, nil)
+	resp, err := e.GetFromESI(url, authdClient, nil)
 	if err != nil {
 		return nil, err
 	}

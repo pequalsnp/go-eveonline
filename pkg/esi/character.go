@@ -107,7 +107,7 @@ func (e *ESI) GetCharacterSkills(httpClient *http.Client, characterID eveonline.
 func (e *ESI) GetCharacterAssets(authdClient *http.Client, characterID eveonline.CharacterID) (*CharacterAssets, error) {
 	characterAssetsURL := fmt.Sprintf(CharacterAssetsURLPattern, characterID)
 
-	allPages, err := e.GetAllPages(characterAssetsURL, 1, authdClient)
+	allPages, err := e.GetAllPages(characterAssetsURL, 1, map[string][]string{}, authdClient)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get assets for character id %d, %v", characterID, err)
 	}

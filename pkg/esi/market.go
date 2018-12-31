@@ -86,10 +86,19 @@ func (e *ESI) GetMarket(regionID eveonline.RegionID, locationID *eveonline.Locat
 	return market, nil
 }
 
-func (e *ESI) GetOrders(regionID eveonline.RegionID, locationID *eveonline.LocationID, httpClient *http.Client) (*Orders, error) {
+func (e *ESI) GetOrders(
+	regionID eveonline.RegionID,
+	locationID *eveonline.LocationID,
+	httpClient *http.Client,
+	onlyForTypeID *eveonline.TypeID,
+) (*Orders, error) {
 	regionMarketOrdersURL := fmt.Sprintf("https://esi.evetech.net/v1/markets/%d/orders/", regionID)
 
-	allPages, err := e.GetAllPages(regionMarketOrdersURL, 1, httpClient)
+	queryParams := make(map[string][]string)
+	if onlyForTypeID != nil {
+		queryParams["type_id"] = []string{fmt.Sprintf("%d", *onlyForTypeID)}
+	}
+	allPages, err := e.GetAllPages(regionMarketOrdersURL, 1, queryParams, httpClient)
 	if err != nil {
 		return nil, err
 	}

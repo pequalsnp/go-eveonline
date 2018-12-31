@@ -165,8 +165,17 @@ func (e *ESI) ScanPages(url string, httpClient *http.Client, scanFn func(*Respon
 	return nil
 }
 
-func (e *ESI) GetAllPages(url string, page int, httpClient *http.Client) ([]*ResponsePage, error) {
-	responsePage, err := e.GetFromESI(url, httpClient, map[string][]string{"page": []string{strconv.Itoa(page)}})
+func (e *ESI) GetAllPages(
+	url string,
+	page int,
+	queryParams map[string][]string,
+	httpClient *http.Client,
+) ([]*ResponsePage, error) {
+	params := map[string][]string{"page": []string{strconv.Itoa(page)}}
+	for k, v := range queryParams {
+		params[k] = v
+	}
+	responsePage, err := e.GetFromESI(url, httpClient, params)
 	if err != nil {
 		return nil, err
 	}
@@ -184,7 +193,7 @@ func (e *ESI) GetAllPages(url string, page int, httpClient *http.Client) ([]*Res
 	responsePages := []*ResponsePage{responsePage}
 
 	if page < pages {
-		nextPages, nextPageErr := e.GetAllPages(url, page+1, httpClient)
+		nextPages, nextPageErr := e.GetAllPages(url, page+1, queryParams, httpClient)
 		if nextPageErr != nil {
 			return nil, nextPageErr
 		}
